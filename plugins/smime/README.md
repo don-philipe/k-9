@@ -1,0 +1,1 @@
+This student project aims to bring S/MIME functionality to k9.
