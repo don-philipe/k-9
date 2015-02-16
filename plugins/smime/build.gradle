@@ -18,9 +18,10 @@ android {
 }
 
 repositories {
-    maven { url 'http://repo2.maven.org/maven2/org/bouncycastle' }
+    mavenCentral()
 }
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+    compile 'org.bouncycastle:bcmail-jdk15on:1.51'
 }
