@@ -21,7 +21,7 @@ public class EmailHelper {
     private static Set<String> getAllAccountEmails(Context context) {
         //TODO where do we get the context from?
         final Account[] accounts = AccountManager.get(context).getAccounts();
-        final Set<String> emailSet = new HashSet<>();
+        final Set<String> emailSet = new HashSet<String>();
         for (Account account : accounts) {
             if (Patterns.EMAIL_ADDRESS.matcher(account.name).matches())
                 emailSet.add(account.name);
