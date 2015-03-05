@@ -13,7 +13,6 @@ import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
 import org.bouncycastle.cms.jcajce.JceKeyTransRecipientId;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
 import org.bouncycastle.mail.smime.SMIMEEnveloped;
-import org.bouncycastle.mail.smime.SMIMEException;
 import org.bouncycastle.mail.smime.SMIMESigned;
 import org.bouncycastle.mail.smime.SMIMEUtil;
 import org.bouncycastle.operator.OperatorCreationException;
@@ -51,10 +50,10 @@ public class MailReader {
             Properties props = System.getProperties();
             Session session = Session.getDefaultInstance(props, null);
             MimeMessage msg = new MimeMessage(session, fis);
-            //TODO what is with encrypted and signed mails?
-            if(msg.isMimeType("multipart/signed")) // || msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime"))
-                readSignedMail(msg);
-            else if(msg.isMimeType("application/pkcs7-mime"))
+            boolean sig_correct = false;
+            if(msg.isMimeType("multipart/signed") || msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime"))
+                sig_correct = readSignedMail(msg);
+            if(msg.isMimeType("application/pkcs7-mime") && sig_correct)
                 //TODO get the right keystore uri
                 readEncryptedMail(msg, "keystore_uri");
         }
@@ -108,11 +107,13 @@ public class MailReader {
     /**
      *
      * @param msg
+     * @return true if the certificate was correct an no other errors happend.
      * @throws MessagingException
      */
-    private static void readSignedMail(MimeMessage msg) {
+    private static boolean readSignedMail(MimeMessage msg) {
+        boolean correct_sig = false;
         try {
-//            if (msg.isMimeType("multipart/signed")) {
+            if (msg.isMimeType("multipart/signed")) {
                 SMIMESigned s = new SMIMESigned((MimeMultipart) msg.getContent());
 
                 // extract the content
@@ -141,9 +142,9 @@ public class MailReader {
                 }
 
                 System.out.println("Status:");
-                verifySignedMailWithCert(s);
-            //TODO encrypted AND signed mails
-/*            }
+                correct_sig = verifySignedMailWithCert(s);
+            }
+            // signed encrypted mails:
             else if (msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime")) {
                 // in this case the content is wrapped in the signature block.
                 SMIMESigned s = new SMIMESigned(msg);
@@ -158,19 +159,23 @@ public class MailReader {
 
                 System.out.println("Status:");
 
-                verifySignedMailWithCert(s);
+                correct_sig = verifySignedMailWithCert(s);
             }
             else
-                System.err.println("Not a signed message!");*/
+                return false;
         }
         catch(Exception e) {
             //TODO
+        }
+        finally {
+            return correct_sig;
         }
     }
 
     /**
      * Verifies mail which has its certificate attached.
      * @param s
+     * @return
      * @throws Exception
      */
     private static boolean verifySignedMailWithCert(SMIMESigned s) throws CertificateException, OperatorCreationException, CMSException {
