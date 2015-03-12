@@ -1,9 +1,12 @@
 package de.tud.smime;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
+
+import de.tud.smime.util.EmailReceiver;
 
 
 public class SMIME extends Activity {
@@ -12,6 +15,11 @@ public class SMIME extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_smime);
+
+        // testing purposes
+        Intent intent = getIntent();
+        EmailReceiver er = new EmailReceiver();
+        er.onReceive(this, intent);
     }
 
 
