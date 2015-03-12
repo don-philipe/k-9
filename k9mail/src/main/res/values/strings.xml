@@ -569,6 +569,10 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="account_settings_folders">Folders</string>
     <string name="account_settings_quote_prefix_label">Quoted text prefix</string>
     <string name="account_settings_crypto">Cryptography</string>
+    <string name="account_settings_openpgp">OpenPGP</string>
+    <string name="account_settings_smime">S/MIME</string>
+    <string name="account_settings_smime_checkbox_title">Enable S/MIME Encryption</string>
+    <string name="account_settings_smime_checkbox_text">Description.</string>
     <string name="account_settings_crypto_app">OpenPGP Provider</string>
     <string name="account_settings_no_openpgp_provider_installed">No OpenPGP Provider installed</string>
 
