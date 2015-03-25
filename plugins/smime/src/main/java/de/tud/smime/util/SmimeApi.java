@@ -95,13 +95,13 @@ public class SmimeApi {
         void onReturn(final Intent result);
     }
 
-    private class OpenPgpAsyncTask extends AsyncTask<Void, Integer, Intent> {
+    private class SmimeAsyncTask extends AsyncTask<Void, Integer, Intent> {
         Intent data;
         InputStream is;
         OutputStream os;
         ISmimeCallback callback;
 
-        private OpenPgpAsyncTask(Intent data, InputStream is, OutputStream os, ISmimeCallback callback) {
+        private SmimeAsyncTask(Intent data, InputStream is, OutputStream os, ISmimeCallback callback) {
             this.data = data;
             this.is = is;
             this.os = os;
@@ -121,7 +121,7 @@ public class SmimeApi {
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB)
     public void executeApiAsync(Intent data, InputStream is, OutputStream os, ISmimeCallback callback) {
-        OpenPgpAsyncTask task = new OpenPgpAsyncTask(data, is, os, callback);
+        SmimeAsyncTask task = new SmimeAsyncTask(data, is, os, callback);
 
         // don't serialize async tasks!
         // http://commonsware.com/blog/2012/04/20/asynctask-threading-regression-confirmed.html

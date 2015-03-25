@@ -18,7 +18,14 @@ import org.bouncycastle.mail.smime.SMIMEUtil;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.Store;
 
+import java.io.BufferedOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.security.KeyStore;
 import java.security.PrivateKey;
 import java.security.cert.CertificateException;
@@ -26,9 +33,11 @@ import java.security.cert.X509Certificate;
 import java.util.Collection;
 import java.util.Enumeration;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.Properties;
 
 import javax.mail.BodyPart;
+import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
 import javax.mail.Session;
@@ -45,21 +54,47 @@ public class MailReader {
     /**
      *
      */
-    public static void readMail(FileInputStream fis) {
+    public static boolean readMail(InputStream message) {
+        Properties props = System.getProperties();
+        Session session = Session.getDefaultInstance(props, null);
         try {
-            Properties props = System.getProperties();
-            Session session = Session.getDefaultInstance(props, null);
-            MimeMessage msg = new MimeMessage(session, fis);
-            boolean sig_correct = false;
-            if(msg.isMimeType("multipart/signed") || msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime"))
-                sig_correct = readSignedMail(msg);
-            if(msg.isMimeType("application/pkcs7-mime") && sig_correct)
-                //TODO get the right keystore uri
-                readEncryptedMail(msg, "keystore_uri");
+            MimeMessage mm = new MimeMessage(session, message);
+            if(mm.isMimeType("application/pkcs7-signature") || mm.isMimeType("multipart/signed"))
+                return readSignedMail(mm);
+//            if(message.hasAttachments()) {
+//                LinkedList<String> mimtypes = new LinkedList<String>();
+//                if (message.hasAttachments()) {
+//                    for (int i = 0; i < message.getCount(); i++) {
+//                        try {
+//                            mimtypes.add(message.getBodyPart(i).getMimeType());
+//                        } catch (MessagingException e) {
+//                            e.printStackTrace();
+//                        }
+//                    }
+//                }
+//                if(mimtypes.contains("application/pkcs7-signature") || mimtypes.contains("multipart/signed")) {
+//                    InputStream is = new ByteArrayInputStream(mData.getBytes(Charset.forName("UTF-8")));
+//
+//                }
+//            }
+        } catch (MessagingException e) {
+            e.printStackTrace();
         }
-        catch (Exception e) {
-            //TODO
-        }
+//        try {
+//            Properties props = System.getProperties();
+//            Session session = Session.getDefaultInstance(props, null);
+//            MimeMessage msg = new MimeMessage(session, fis);
+//            boolean sig_correct = false;
+//            if(msg.isMimeType("multipart/signed") || msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime"))
+//                return readSignedMail(msg);
+//            if(msg.isMimeType("application/pkcs7-mime") && sig_correct)
+//                //TODO get the right keystore uri
+//                readEncryptedMail(msg, "keystore_uri");
+//        }
+//        catch (Exception e) {
+//            //TODO
+//        }
+        return false;
     }
 
     /**

@@ -5,6 +5,7 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.LinkedList;
 
 import android.app.Activity;
 import android.app.Fragment;
@@ -583,7 +584,7 @@ public class SingleMessageView extends LinearLayout implements OnClickListener,
             if(data.getSignatureResult() != null)
                 mOpenPgpView.updateLayout(account, data.getDecryptedData(),
                     data.getSignatureResult(), message);
-            if(data.getSmimeSignatureResult() != null)
+            if(message.getMimeType() != null)
                 mSmimeView.updateLayout(account, data.getDecryptedData(), data.getSmimeSignatureResult(), message);
         } else {
             showStatusMessage(getContext().getString(R.string.webview_empty_message));
