@@ -1121,6 +1121,21 @@ Please submit bug reports, contribute new features and ask questions at
     <string name="openpgp_error">OpenPGP Error:</string>
     <string name="openpgp_user_id">User Id</string>
 
+    <!-- === Smime specific ================================================================== -->
+    <string name="smime_decrypting_verifying">Decrypting/Verifying…</string>
+    <string name="smime_successful_decryption">Successful decryption</string>
+    <string name="smime_signature_valid_certified">Valid signature (certified)</string>
+    <string name="smime_signature_valid_uncertified">Valid signature but uncertified</string>
+    <string name="smime_signature_unknown">Unknown signer</string>
+    <string name="smime_signature_invalid">Invalid signature</string>
+    <string name="smime_signature_unknown_text">Missing public key for this signature</string>
+    <string name="smime_successful_decryption_valid_signature_certified">Successful decryption and valid signature (certified)</string>
+    <string name="smime_successful_decryption_valid_signature_uncertified">Successful decryption and valid signature but uncertified</string>
+    <string name="smime_successful_decryption_unknown_signature">Successful decryption but missing public key</string>
+    <string name="smime_get_key">Lookup missing key</string>
+    <string name="smime_error">S/MIME Error:</string>
+    <string name="smime_user_id">User Id</string>
+
     <!-- === Client certificates specific ================================================================== -->
     <string name="account_setup_basics_client_certificate">Use client certificate</string>
     <string name="client_certificate_spinner_empty">No client certificate</string>

@@ -2,8 +2,8 @@
 <resources>
     <color name="message_list_item_footer_background">#eeeeee</color>
     
-    <color name="openpgp_red">#CC0000</color>
-    <color name="openpgp_orange">#FF8800</color>
-    <color name="openpgp_green">#669900</color>
-    <color name="openpgp_blue">#336699</color>
+    <color name="crypto_red">#CC0000</color>
+    <color name="crypto_orange">#FF8800</color>
+    <color name="crypto_green">#669900</color>
+    <color name="crypto_blue">#336699</color>
 </resources>

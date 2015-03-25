@@ -251,5 +251,6 @@
     </LinearLayout>
 
     <include layout="@layout/message_view_openpgp_layout"/>
+    <include layout="@layout/message_view_smime_layout"/>
 
 </com.fsck.k9.view.MessageHeader>

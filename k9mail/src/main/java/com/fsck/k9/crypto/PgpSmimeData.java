@@ -4,7 +4,9 @@ import java.io.Serializable;
 
 import org.openintents.openpgp.OpenPgpSignatureResult;
 
-public class PgpData implements Serializable {
+import de.tud.smime.util.SmimeSignatureResult;
+
+public class PgpSmimeData implements Serializable {
     private static final long serialVersionUID = 6314045536470848410L;
     protected long mEncryptionKeyIds[] = null;
     protected long mSignatureKeyId = 0;
@@ -16,13 +18,22 @@ public class PgpData implements Serializable {
     
     // new API
     protected OpenPgpSignatureResult mSignatureResult;
+    protected SmimeSignatureResult mSmimeSignatureResult;
 
     public OpenPgpSignatureResult getSignatureResult() {
         return mSignatureResult;
     }
 
+    public SmimeSignatureResult getSmimeSignatureResult() {
+        return this.mSmimeSignatureResult;
+    }
+
     public void setSignatureResult(OpenPgpSignatureResult signatureResult) {
         this.mSignatureResult = signatureResult;
+    }
+
+    public void setSmimeSignatureResult(SmimeSignatureResult smimeResult) {
+        this.mSmimeSignatureResult = smimeResult;
     }
 
     public void setSignatureKeyId(long keyId) {

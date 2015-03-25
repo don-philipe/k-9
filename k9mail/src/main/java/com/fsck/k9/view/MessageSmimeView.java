@@ -1,12 +1,6 @@
 
 package com.fsck.k9.view;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
-import java.nio.charset.Charset;
-
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.PendingIntent;
@@ -22,7 +16,6 @@ import android.widget.LinearLayout;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.fsck.k9.Account;
 import com.fsck.k9.Identity;
@@ -35,15 +28,20 @@ import com.fsck.k9.helper.IdentityHelper;
 import com.fsck.k9.mail.Message;
 import com.fsck.k9.mail.MessagingException;
 import com.fsck.k9.mail.Part;
-
 import com.fsck.k9.mail.internet.MessageExtractor;
 import com.fsck.k9.mail.internet.MimeUtility;
-import org.openintents.openpgp.OpenPgpError;
-import org.openintents.openpgp.OpenPgpSignatureResult;
-import org.openintents.openpgp.util.OpenPgpApi;
-import org.openintents.openpgp.util.OpenPgpServiceConnection;
 
-public class MessageOpenPgpView extends LinearLayout {
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
+import java.nio.charset.Charset;
+
+import de.tud.smime.util.SmimeError;
+import de.tud.smime.util.SmimeSignatureResult;
+import de.tud.smime.util.SmimeApi;
+
+public class MessageSmimeView extends LinearLayout {
 
     private Context mContext;
     private MessageViewFragment mFragment;
@@ -54,10 +52,10 @@ public class MessageOpenPgpView extends LinearLayout {
     private ProgressBar mProgress;
     private Button mGetKeyButton;
 
-    private OpenPgpServiceConnection mOpenPgpServiceConnection;
-    private OpenPgpApi mOpenPgpApi;
+//    private OpenPgpServiceConnection mOpenPgpServiceConnection;
+    private SmimeApi mSmimeApi;
 
-    private String mOpenPgpProvider;
+//    private String mOpenPgpProvider;
     private Message mMessage;
 
     private PendingIntent mMissingKeyPI;
@@ -67,18 +65,19 @@ public class MessageOpenPgpView extends LinearLayout {
     String mData;
     Account mAccount;
 
-    public MessageOpenPgpView(Context context, AttributeSet attrs) {
+    public MessageSmimeView(Context context, AttributeSet attrs) {
         super(context, attrs);
         mContext = context;
     }
 
     public void setupChildViews() {
-        mSignatureLayout = (RelativeLayout) findViewById(R.id.openpgp_signature_layout);
-        mSignatureStatusImage = (ImageView) findViewById(R.id.openpgp_signature_status);
-        mSignatureUserId = (TextView) findViewById(R.id.openpgp_user_id);
-        mText = (TextView) findViewById(R.id.openpgp_text);
-        mProgress = (ProgressBar) findViewById(R.id.openpgp_progress);
-        mGetKeyButton = (Button) findViewById(R.id.openpgp_get_key);
+        // TODO: other layouts
+    mSignatureLayout = (RelativeLayout) findViewById(R.id.smime_signature_layout);
+    mSignatureStatusImage = (ImageView) findViewById(R.id.smime_signature_status);
+    mSignatureUserId = (TextView) findViewById(R.id.smime_user_id);
+    mText = (TextView) findViewById(R.id.smime_text);
+    mProgress = (ProgressBar) findViewById(R.id.smime_progress);
+    mGetKeyButton = (Button) findViewById(R.id.smime_get_key);
 
         mGetKeyButton.setOnClickListener(new OnClickListener() {
             @Override
@@ -97,27 +96,27 @@ public class MessageOpenPgpView extends LinearLayout {
      * visible, if they should be visible.
      */
     public void updateLayout(Account account, String decryptedData,
-            final OpenPgpSignatureResult signatureResult,
+            final SmimeSignatureResult signatureResult,
             final Message message) {
 
         // set class variables
         mAccount = account;
-        mOpenPgpProvider = mAccount.getOpenPgpProvider();
+//        mOpenPgpProvider = mAccount.getOpenPgpProvider();
         mMessage = message;
 
         // only use this view if a OpenPGP Provider is set
-        if (mOpenPgpProvider == null) {
-            return;
-        }
+//        if (mOpenPgpProvider == null) {
+//            return;
+//        }
 
         Activity activity = mFragment.getActivity();
         if (activity == null) {
             return;
         }
         // bind to service
-        mOpenPgpServiceConnection = new OpenPgpServiceConnection(activity,
-                mOpenPgpProvider);
-        mOpenPgpServiceConnection.bindToService();
+//        mOpenPgpServiceConnection = new OpenPgpServiceConnection(activity,
+//                mOpenPgpProvider);
+//        mOpenPgpServiceConnection.bindToService();
 
         if ((message == null) && (decryptedData == null)) {
             this.setVisibility(View.GONE);
@@ -128,9 +127,10 @@ public class MessageOpenPgpView extends LinearLayout {
         if (decryptedData != null && signatureResult == null) {
             // encrypted-only
 
-            MessageOpenPgpView.this.setBackgroundColor(mFragment.getResources().getColor(
+            // TODO:
+            MessageSmimeView.this.setBackgroundColor(mFragment.getResources().getColor(
                     R.color.crypto_blue));
-            mText.setText(R.string.openpgp_successful_decryption);
+            mText.setText(R.string.smime_successful_decryption);
 
             // don't process further
             return;
@@ -138,10 +138,10 @@ public class MessageOpenPgpView extends LinearLayout {
             // signed-only and signed-and-encrypted
 
             switch (signatureResult.getStatus()) {
-                case OpenPgpSignatureResult.SIGNATURE_ERROR:
+                case SmimeSignatureResult.SIGNATURE_ERROR:
                     // TODO: signature error but decryption works?
-                    mText.setText(R.string.openpgp_signature_invalid);
-                    MessageOpenPgpView.this.setBackgroundColor(mFragment.getResources().getColor(
+                    mText.setText(R.string.smime_signature_invalid);
+                    MessageSmimeView.this.setBackgroundColor(mFragment.getResources().getColor(
                             R.color.crypto_red));
 
                     mGetKeyButton.setVisibility(View.GONE);
@@ -149,14 +149,14 @@ public class MessageOpenPgpView extends LinearLayout {
                     mSignatureLayout.setVisibility(View.GONE);
                     break;
 
-                case OpenPgpSignatureResult.SIGNATURE_SUCCESS_CERTIFIED:
+                case SmimeSignatureResult.SIGNATURE_SUCCESS_CERTIFIED:
                     if (signatureResult.isSignatureOnly()) {
-                        mText.setText(R.string.openpgp_signature_valid_certified);
+                        mText.setText(R.string.smime_signature_valid_certified);
                     }
                     else {
-                        mText.setText(R.string.openpgp_successful_decryption_valid_signature_certified);
+                        mText.setText(R.string.smime_successful_decryption_valid_signature_certified);
                     }
-                    MessageOpenPgpView.this.setBackgroundColor(mFragment.getResources().getColor(
+                    MessageSmimeView.this.setBackgroundColor(mFragment.getResources().getColor(
                             R.color.crypto_green));
 
                     mGetKeyButton.setVisibility(View.GONE);
@@ -166,31 +166,31 @@ public class MessageOpenPgpView extends LinearLayout {
 
                     break;
 
-                case OpenPgpSignatureResult.SIGNATURE_KEY_MISSING:
+                case SmimeSignatureResult.SIGNATURE_KEY_MISSING:
                     if (signatureResult.isSignatureOnly()) {
-                        mText.setText(R.string.openpgp_signature_unknown_text);
+                        mText.setText(R.string.smime_signature_unknown_text);
                     }
                     else {
-                        mText.setText(R.string.openpgp_successful_decryption_unknown_signature);
+                        mText.setText(R.string.smime_successful_decryption_unknown_signature);
                     }
-                    MessageOpenPgpView.this.setBackgroundColor(mFragment.getResources().getColor(
+                    MessageSmimeView.this.setBackgroundColor(mFragment.getResources().getColor(
                             R.color.crypto_orange));
                     
                     mGetKeyButton.setVisibility(View.VISIBLE);
-                    mSignatureUserId.setText(R.string.openpgp_signature_unknown);
+                    mSignatureUserId.setText(R.string.smime_signature_unknown);
                     mSignatureStatusImage.setImageResource(R.drawable.overlay_error);
                     mSignatureLayout.setVisibility(View.VISIBLE);
 
                     break;
 
-                case OpenPgpSignatureResult.SIGNATURE_SUCCESS_UNCERTIFIED:
+                case SmimeSignatureResult.SIGNATURE_SUCCESS_UNCERTIFIED:
                     if (signatureResult.isSignatureOnly()) {
-                        mText.setText(R.string.openpgp_signature_valid_uncertified);
+                        mText.setText(R.string.smime_signature_valid_uncertified);
                     }
                     else {
-                        mText.setText(R.string.openpgp_successful_decryption_valid_signature_uncertified);
+                        mText.setText(R.string.smime_successful_decryption_valid_signature_uncertified);
                     }
-                    MessageOpenPgpView.this.setBackgroundColor(mFragment.getResources().getColor(
+                    MessageSmimeView.this.setBackgroundColor(mFragment.getResources().getColor(
                             R.color.crypto_orange));
 
                     mGetKeyButton.setVisibility(View.GONE);
@@ -210,29 +210,17 @@ public class MessageOpenPgpView extends LinearLayout {
 
         // Start new decryption/verification
         CryptoHelper helper = new CryptoHelper();
-        if (helper.isEncrypted(message) || helper.isSigned(message)) {
+        if (helper.isEncrypted(message) || helper.isSigned(message))
             // start automatic decrypt
             decryptAndVerify(message);
-        } else {
-            try {
-                // check for PGP/MIME encryption
-                Part pgp = MimeUtility.findFirstPartByMimeType(message, "application/pgp-encrypted");
-                if (pgp != null) {
-                    Toast.makeText(mContext, R.string.pgp_mime_unsupported, Toast.LENGTH_LONG)
-                            .show();
-                }
-            } catch (MessagingException e) {
-                // nothing to do...
-            }
-        }
     }
 
     private void decryptAndVerify(final Message message) {
         this.setVisibility(View.VISIBLE);
         mProgress.setVisibility(View.VISIBLE);
-        MessageOpenPgpView.this.setBackgroundColor(mFragment.getResources().getColor(
+        MessageSmimeView.this.setBackgroundColor(mFragment.getResources().getColor(
                 R.color.crypto_orange));
-        mText.setText(R.string.openpgp_decrypting_verifying);
+        mText.setText(R.string.smime_decrypting_verifying);
 
         // waiting in a new thread
         Runnable r = new Runnable() {
@@ -250,15 +238,15 @@ public class MessageOpenPgpView extends LinearLayout {
                     }
 
                     // wait for service to be bound
-                    while (!mOpenPgpServiceConnection.isBound()) {
-                        try {
-                            Thread.sleep(100);
-                        } catch (InterruptedException e) {
-                        }
-                    }
+//                    while (!mOpenPgpServiceConnection.isBound()) {
+//                        try {
+//                            Thread.sleep(100);
+//                        } catch (InterruptedException e) {
+//                        }
+//                    }
 
-                    mOpenPgpApi = new OpenPgpApi(getContext(),
-                            mOpenPgpServiceConnection.getService());
+//                    mOpenPgpApi = new OpenPgpApi(getContext(),
+//                            mOpenPgpServiceConnection.getService());
 
                     decryptVerify(new Intent());
 
@@ -273,19 +261,19 @@ public class MessageOpenPgpView extends LinearLayout {
     }
 
     private void decryptVerify(Intent intent) {
-        intent.setAction(OpenPgpApi.ACTION_DECRYPT_VERIFY);
-        intent.putExtra(OpenPgpApi.EXTRA_REQUEST_ASCII_ARMOR, true);
+        intent.setAction(SmimeApi.ACTION_DECRYPT_VERIFY);
+        intent.putExtra(SmimeApi.EXTRA_REQUEST_ASCII_ARMOR, true);
 
         Identity identity = IdentityHelper.getRecipientIdentityFromMessage(mAccount, mMessage);
         String accName = OpenPgpApiHelper.buildAccountName(identity);
-        intent.putExtra(OpenPgpApi.EXTRA_ACCOUNT_NAME, accName);
+        intent.putExtra(SmimeApi.EXTRA_ACCOUNT_NAME, accName);
 
         InputStream is = new ByteArrayInputStream(mData.getBytes(Charset.forName("UTF-8")));
         final ByteArrayOutputStream os = new ByteArrayOutputStream();
 
         DecryptVerifyCallback callback = new DecryptVerifyCallback(os, REQUEST_CODE_DECRYPT_VERIFY);
 
-        mOpenPgpApi.executeApiAsync(intent, is, os, callback);
+//        mOpenPgpApi.executeApiAsync(intent, is, os, callback);
     }
 
     private void getMissingKey() {
@@ -301,7 +289,7 @@ public class MessageOpenPgpView extends LinearLayout {
     /**
      * Called on successful decrypt/verification
      */
-    private class DecryptVerifyCallback implements OpenPgpApi.IOpenPgpCallback {
+    private class DecryptVerifyCallback implements SmimeApi.ISmimeCallback {
         ByteArrayOutputStream os;
         int requestCode;
 
@@ -312,14 +300,14 @@ public class MessageOpenPgpView extends LinearLayout {
 
         @Override
         public void onReturn(Intent result) {
-            switch (result.getIntExtra(OpenPgpApi.RESULT_CODE, OpenPgpApi.RESULT_CODE_ERROR)) {
-                case OpenPgpApi.RESULT_CODE_SUCCESS: {
+            switch (result.getIntExtra(SmimeApi.RESULT_CODE, SmimeApi.RESULT_CODE_ERROR)) {
+                case SmimeApi.RESULT_CODE_SUCCESS: {
                     try {
                         final String output = os.toString("UTF-8");
 
-                        OpenPgpSignatureResult sigResult = null;
-                        if (result.hasExtra(OpenPgpApi.RESULT_SIGNATURE)) {
-                            sigResult = result.getParcelableExtra(OpenPgpApi.RESULT_SIGNATURE);
+                        SmimeSignatureResult sigResult = null;
+                        if (result.hasExtra(SmimeApi.RESULT_SIGNATURE)) {
+                            sigResult = result.getParcelableExtra(SmimeApi.RESULT_SIGNATURE);
                         }
 
                         if (K9.DEBUG)
@@ -327,17 +315,17 @@ public class MessageOpenPgpView extends LinearLayout {
                                     + " str=" + output);
 
                         // missing key -> PendingIntent to get keys
-                        mMissingKeyPI = result.getParcelableExtra(OpenPgpApi.RESULT_INTENT);
+                        mMissingKeyPI = result.getParcelableExtra(SmimeApi.RESULT_INTENT);
 
                         mProgress.setVisibility(View.GONE);
-                        mFragment.setMessageWithOpenPgp(output, sigResult);
+                        mFragment.setMessageWithSmime(output, sigResult);
                     } catch (UnsupportedEncodingException e) {
                         Log.e(K9.LOG_TAG, "UnsupportedEncodingException", e);
                     }
                     break;
                 }
-                case OpenPgpApi.RESULT_CODE_USER_INTERACTION_REQUIRED: {
-                    PendingIntent pi = result.getParcelableExtra(OpenPgpApi.RESULT_INTENT);
+                case SmimeApi.RESULT_CODE_USER_INTERACTION_REQUIRED: {
+                    PendingIntent pi = result.getParcelableExtra(SmimeApi.RESULT_INTENT);
                     try {
                         mFragment.getActivity().startIntentSenderForResult(
                                 pi.getIntentSender(),
@@ -347,8 +335,8 @@ public class MessageOpenPgpView extends LinearLayout {
                     }
                     break;
                 }
-                case OpenPgpApi.RESULT_CODE_ERROR: {
-                    OpenPgpError error = result.getParcelableExtra(OpenPgpApi.RESULT_ERROR);
+                case SmimeApi.RESULT_CODE_ERROR: {
+                    SmimeError error = result.getParcelableExtra(SmimeApi.RESULT_ERROR);
                     handleError(error);
                     break;
                 }
@@ -376,7 +364,7 @@ public class MessageOpenPgpView extends LinearLayout {
         return false;
     }
 
-    private void handleError(final OpenPgpError error) {
+    private void handleError(final SmimeError error) {
         Activity activity = mFragment.getActivity();
         if (activity == null) {
             return;
@@ -388,13 +376,13 @@ public class MessageOpenPgpView extends LinearLayout {
                 mProgress.setVisibility(View.GONE);
 
                 if (K9.DEBUG) {
-                    Log.d(K9.LOG_TAG, "OpenPGP Error ID:" + error.getErrorId());
-                    Log.d(K9.LOG_TAG, "OpenPGP Error Message:" + error.getMessage());
+                    Log.d(K9.LOG_TAG, "Smime Error ID:" + error.getErrorId());
+                    Log.d(K9.LOG_TAG, "Smime Error Message:" + error.getMessage());
                 }
 
-                mText.setText(mFragment.getString(R.string.openpgp_error) + " "
+                mText.setText(mFragment.getString(R.string.smime_error) + " "
                         + error.getMessage());
-                MessageOpenPgpView.this.setBackgroundColor(mFragment.getResources().getColor(
+                MessageSmimeView.this.setBackgroundColor(mFragment.getResources().getColor(
                         R.color.crypto_red));
             }
         });
@@ -405,20 +393,20 @@ public class MessageOpenPgpView extends LinearLayout {
         super.onAttachedToWindow();
 
         // bind to service if a OpenPGP Provider is available
-        if (mOpenPgpProvider != null) {
-            mOpenPgpServiceConnection = new OpenPgpServiceConnection(mFragment.getActivity(),
-                    mOpenPgpProvider);
-            mOpenPgpServiceConnection.bindToService();
-        }
+//        if (mOpenPgpProvider != null) {
+//            mOpenPgpServiceConnection = new OpenPgpServiceConnection(mFragment.getActivity(),
+//                    mOpenPgpProvider);
+//            mOpenPgpServiceConnection.bindToService();
+//        }
     }
 
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
 
-        if (mOpenPgpServiceConnection != null) {
-            mOpenPgpServiceConnection.unbindFromService();
-        }
+//        if (mOpenPgpServiceConnection != null) {
+//            mOpenPgpServiceConnection.unbindFromService();
+//        }
     }
 
 }

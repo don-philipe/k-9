@@ -85,7 +85,7 @@ import com.fsck.k9.activity.misc.Attachment;
 import com.fsck.k9.controller.MessagingController;
 import com.fsck.k9.controller.MessagingListener;
 import com.fsck.k9.crypto.OpenPgpApiHelper;
-import com.fsck.k9.crypto.PgpData;
+import com.fsck.k9.crypto.PgpSmimeData;
 import com.fsck.k9.fragment.ProgressDialogFragment;
 import com.fsck.k9.helper.ContactItem;
 import com.fsck.k9.helper.Contacts;
@@ -312,7 +312,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
     private ImageButton mAddCcFromContacts;
     private ImageButton mAddBccFromContacts;
 
-    private PgpData mPgpData = null;
+    private PgpSmimeData mPgpData = null;
     private String mOpenPgpProvider;
     private OpenPgpServiceConnection mOpenPgpServiceConnection;
 
@@ -1030,7 +1030,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         if (mPgpData != null) {
             return;
         }
-        mPgpData = new PgpData();
+        mPgpData = new PgpSmimeData();
     }
 
     /**
@@ -1171,7 +1171,7 @@ public class MessageCompose extends K9Activity implements OnClickListener,
         mDraftId = savedInstanceState.getLong(STATE_KEY_DRAFT_ID);
         mIdentity = (Identity)savedInstanceState.getSerializable(STATE_IDENTITY);
         mIdentityChanged = savedInstanceState.getBoolean(STATE_IDENTITY_CHANGED);
-        mPgpData = (PgpData) savedInstanceState.getSerializable(STATE_PGP_DATA);
+        mPgpData = (PgpSmimeData) savedInstanceState.getSerializable(STATE_PGP_DATA);
         mInReplyTo = savedInstanceState.getString(STATE_IN_REPLY_TO);
         mReferences = savedInstanceState.getString(STATE_REFERENCES);
         mDraftNeedsSaving = savedInstanceState.getBoolean(STATE_KEY_DRAFT_NEEDS_SAVING);

@@ -41,7 +41,7 @@ import com.fsck.k9.K9;
 import com.fsck.k9.R;
 import com.fsck.k9.controller.MessagingController;
 import com.fsck.k9.controller.MessagingListener;
-import com.fsck.k9.crypto.PgpData;
+import com.fsck.k9.crypto.PgpSmimeData;
 import com.fsck.k9.fragment.MessageViewFragment;
 import com.fsck.k9.helper.ClipboardManager;
 import com.fsck.k9.helper.Contacts;
@@ -89,6 +89,11 @@ public class SingleMessageView extends LinearLayout implements OnClickListener,
 
 
     private MessageOpenPgpView mOpenPgpView;
+
+    //
+    private MessageSmimeView mSmimeView;
+    //
+
     private MessageWebView mMessageContentView;
     private MessageHeader mHeaderContainer;
     private LinearLayout mAttachments;
@@ -125,9 +130,16 @@ public class SingleMessageView extends LinearLayout implements OnClickListener,
         mHiddenAttachments.setVisibility(View.GONE);
         mShowHiddenAttachments = (Button) findViewById(R.id.show_hidden_attachments);
         mShowHiddenAttachments.setVisibility(View.GONE);
-        mOpenPgpView = (MessageOpenPgpView) findViewById(R.id.layout_decrypt_openpgp);
-        mOpenPgpView.setFragment(fragment);
-        mOpenPgpView.setupChildViews();
+//        mOpenPgpView = (MessageOpenPgpView) findViewById(R.id.layout_decrypt_openpgp);
+//        mOpenPgpView.setFragment(fragment);
+//        mOpenPgpView.setupChildViews();
+
+        // TODO: enable both, openpgp and smime view. At the moment there is a problem with the ID.
+        mSmimeView = (MessageSmimeView) findViewById(R.id.layout_decrypt_smime);
+        mSmimeView.setFragment(fragment);
+        mSmimeView.setupChildViews();
+        //
+
         mShowPicturesAction = findViewById(R.id.show_pictures);
         mShowMessageAction = findViewById(R.id.show_message);
 
@@ -499,13 +511,13 @@ public class SingleMessageView extends LinearLayout implements OnClickListener,
         return mHeaderContainer.additionalHeadersVisible();
     }
     
-    public void setMessage(Account account, LocalMessage message, PgpData pgpData,
+    public void setMessage(Account account, LocalMessage message, PgpSmimeData data,
             MessagingController controller, MessagingListener listener) throws MessagingException {
         resetView();
 
         String text = null;
-        if (pgpData != null) {
-            text = pgpData.getDecryptedData();
+        if (data != null) {
+            text = data.getDecryptedData();
             if (text != null) {
                 text = HtmlConverter.textToHtml(text);
             }
@@ -568,8 +580,11 @@ public class SingleMessageView extends LinearLayout implements OnClickListener,
 
         if (text != null) {
             loadBodyFromText(text);
-            mOpenPgpView.updateLayout(account, pgpData.getDecryptedData(),
-                    pgpData.getSignatureResult(), message);
+            if(data.getSignatureResult() != null)
+                mOpenPgpView.updateLayout(account, data.getDecryptedData(),
+                    data.getSignatureResult(), message);
+            if(data.getSmimeSignatureResult() != null)
+                mSmimeView.updateLayout(account, data.getDecryptedData(), data.getSmimeSignatureResult(), message);
         } else {
             showStatusMessage(getContext().getString(R.string.webview_empty_message));
         }

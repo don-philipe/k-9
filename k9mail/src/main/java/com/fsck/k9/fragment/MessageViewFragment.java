@@ -30,7 +30,7 @@ import com.fsck.k9.activity.ChooseFolder;
 import com.fsck.k9.activity.MessageReference;
 import com.fsck.k9.controller.MessagingController;
 import com.fsck.k9.controller.MessagingListener;
-import com.fsck.k9.crypto.PgpData;
+import com.fsck.k9.crypto.PgpSmimeData;
 import com.fsck.k9.fragment.ConfirmationDialogFragment.ConfirmationDialogFragmentListener;
 import com.fsck.k9.helper.FileBrowserHelper;
 import com.fsck.k9.helper.FileBrowserHelper.FileBrowserFailOverCallback;
@@ -45,6 +45,8 @@ import com.fsck.k9.view.MessageHeader;
 import com.fsck.k9.view.SingleMessageView;
 
 import org.openintents.openpgp.OpenPgpSignatureResult;
+
+import de.tud.smime.util.SmimeSignatureResult;
 
 
 public class MessageViewFragment extends Fragment implements OnClickListener,
@@ -72,7 +74,7 @@ public class MessageViewFragment extends Fragment implements OnClickListener,
 
 
     private SingleMessageView mMessageView;
-    private PgpData mPgpData;
+    private PgpSmimeData mPgpData;
     private Account mAccount;
     private MessageReference mMessageReference;
     private LocalMessage mMessage;
@@ -243,7 +245,7 @@ public class MessageViewFragment extends Fragment implements OnClickListener,
 
         MessageReference messageReference;
         if (savedInstanceState != null) {
-            mPgpData = (PgpData) savedInstanceState.get(STATE_PGP_DATA);
+            mPgpData = (PgpSmimeData) savedInstanceState.get(STATE_PGP_DATA);
             messageReference = (MessageReference) savedInstanceState.get(STATE_MESSAGE_REFERENCE);
         } else {
             Bundle args = getArguments();
@@ -275,7 +277,7 @@ public class MessageViewFragment extends Fragment implements OnClickListener,
 
         if (resetPgpData) {
             // start with fresh, empty PGP data
-            mPgpData = new PgpData();
+            mPgpData = new PgpSmimeData();
         }
 
         // Clear previous message
@@ -712,10 +714,24 @@ public class MessageViewFragment extends Fragment implements OnClickListener,
     public void setMessageWithOpenPgp(String decryptedData, OpenPgpSignatureResult signatureResult) {
         try {
             // TODO: get rid of PgpData?
-            PgpData data = new PgpData();
+            PgpSmimeData data = new PgpSmimeData();
             data.setDecryptedData(decryptedData);
             data.setSignatureResult(signatureResult);
             mMessageView.setMessage(mAccount, (LocalMessage) mMessage, data, mController, mListener);
+        } catch (MessagingException e) {
+            Log.e(K9.LOG_TAG, "displayMessageBody failed", e);
+        }
+    }
+
+    /**
+     * Used by MessageSmimeView
+     */
+    public void setMessageWithSmime(String decryptedData, SmimeSignatureResult signatureResult) {
+        try {
+            PgpSmimeData data = new PgpSmimeData();
+            data.setDecryptedData(decryptedData);
+            data.setSmimeSignatureResult(signatureResult);
+            mMessageView.setMessage(mAccount, mMessage, data, mController, mListener);
         } catch (MessagingException e) {
             Log.e(K9.LOG_TAG, "displayMessageBody failed", e);
         }
@@ -846,10 +862,10 @@ public class MessageViewFragment extends Fragment implements OnClickListener,
     }
 
     public interface MessageViewFragmentListener {
-        public void onForward(LocalMessage mMessage, PgpData mPgpData);
+        public void onForward(LocalMessage mMessage, PgpSmimeData mPgpData);
         public void disableDeleteAction();
-        public void onReplyAll(LocalMessage mMessage, PgpData mPgpData);
-        public void onReply(LocalMessage mMessage, PgpData mPgpData);
+        public void onReplyAll(LocalMessage mMessage, PgpSmimeData mPgpData);
+        public void onReply(LocalMessage mMessage, PgpSmimeData mPgpData);
         public void displayMessageSubject(String title);
         public void setProgress(boolean b);
         public void showNextMessageOrReturn();

@@ -37,7 +37,7 @@ import com.fsck.k9.activity.misc.SwipeGestureDetector.OnSwipeGestureListener;
 import com.fsck.k9.activity.setup.AccountSettings;
 import com.fsck.k9.activity.setup.FolderSettings;
 import com.fsck.k9.activity.setup.Prefs;
-import com.fsck.k9.crypto.PgpData;
+import com.fsck.k9.crypto.PgpSmimeData;
 import com.fsck.k9.fragment.MessageListFragment;
 import com.fsck.k9.fragment.MessageListFragment.MessageListFragmentListener;
 import com.fsck.k9.fragment.MessageViewFragment;
@@ -52,6 +52,7 @@ import com.fsck.k9.search.SearchSpecification.SearchCondition;
 import com.fsck.k9.search.SearchSpecification.Searchfield;
 import com.fsck.k9.view.MessageHeader;
 import com.fsck.k9.view.MessageOpenPgpView;
+import com.fsck.k9.view.MessageSmimeView;
 import com.fsck.k9.view.MessageTitleView;
 import com.fsck.k9.view.ViewSwitcher;
 import com.fsck.k9.view.ViewSwitcher.OnSwitchCompleteListener;
@@ -1399,17 +1400,17 @@ public class MessageList extends K9Activity implements MessageListFragmentListen
     }
 
     @Override
-    public void onReply(LocalMessage message, PgpData pgpData) {
+    public void onReply(LocalMessage message, PgpSmimeData pgpData) {
         MessageCompose.actionReply(this, message, false, pgpData.getDecryptedData());
     }
 
     @Override
-    public void onReplyAll(LocalMessage message, PgpData pgpData) {
+    public void onReplyAll(LocalMessage message, PgpSmimeData pgpData) {
         MessageCompose.actionReply(this, message, true, pgpData.getDecryptedData());
     }
 
     @Override
-    public void onForward(LocalMessage mMessage, PgpData mPgpData) {
+    public void onForward(LocalMessage mMessage, PgpSmimeData mPgpData) {
         MessageCompose.actionForward(this, mMessage, mPgpData.getDecryptedData());
     }
 
@@ -1567,6 +1568,11 @@ public class MessageList extends K9Activity implements MessageListFragmentListen
         MessageOpenPgpView openPgpView = (MessageOpenPgpView) findViewById(R.id.layout_decrypt_openpgp);
         if (openPgpView != null && openPgpView.handleOnActivityResult(requestCode, resultCode, data)) {
             return;
+        }
+        else {
+            MessageSmimeView smimeView = (MessageSmimeView) findViewById(R.id.layout_decrypt_smime);
+            if(smimeView != null)
+                smimeView.handleOnActivityResult(requestCode, resultCode, data);
         }
     }
     
