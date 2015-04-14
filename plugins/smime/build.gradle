@@ -28,5 +28,7 @@ repositories {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'org.bouncycastle:bcmail-jdk15on:1.51'
-    compile 'javax.mail:mail:1.5.0-b01'
+    compile files('libs/activation.jar')
+    compile files('libs/additionnal.jar')
+    compile files('libs/mail.jar')
 }
