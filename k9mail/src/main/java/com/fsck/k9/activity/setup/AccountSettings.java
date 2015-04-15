@@ -108,6 +108,8 @@ public class AccountSettings extends K9PreferenceActivity {
     private static final String PREFERENCE_CLOUD_SEARCH_ENABLED = "remote_search_enabled";
     private static final String PREFERENCE_REMOTE_SEARCH_NUM_RESULTS = "account_remote_search_num_results";
     private static final String PREFERENCE_REMOTE_SEARCH_FULL_TEXT = "account_remote_search_full_text";
+    private static final String PREFERENCE_SMIME_CHECKBOX = "smime_enabled";
+    private static final String PREFERENCE_SMIME = "smime";
 
     private static final String PREFERENCE_LOCAL_STORAGE_PROVIDER = "local_storage_provider";
     private static final String PREFERENCE_CATEGORY_FOLDERS = "folders";
@@ -124,6 +126,7 @@ public class AccountSettings extends K9PreferenceActivity {
     private boolean mIsPushCapable = false;
     private boolean mIsExpungeCapable = false;
     private boolean mIsSeenFlagSupported = false;
+  //  private boolean mSmimeEnabled = false;
 
     private PreferenceScreen mMainScreen;
     private PreferenceScreen mComposingScreen;
@@ -170,6 +173,8 @@ public class AccountSettings extends K9PreferenceActivity {
     private ListPreference mMaxPushFolders;
     private boolean mHasCrypto = false;
     private OpenPgpListPreference mCryptoApp;
+    private CheckBoxPreference mSmimeEnabled;
+    private PreferenceScreen mSmime;
 
     private PreferenceScreen mSearchScreen;
     private CheckBoxPreference mCloudSearchEnabled;
@@ -699,6 +704,19 @@ public class AccountSettings extends K9PreferenceActivity {
             mCryptoMenu.setEnabled(false);
             mCryptoMenu.setSummary(R.string.account_settings_no_openpgp_provider_installed);
         }
+
+        mSmime = (PreferenceScreen) findPreference(PREFERENCE_SMIME);
+        mSmimeEnabled = (CheckBoxPreference) findPreference(PREFERENCE_SMIME_CHECKBOX);
+        mSmimeEnabled.setChecked(mAccount.isSmimeEnabled());
+        /*
+        // maybe dynamic adaption of summary text, but this is does not work >here<
+                if (mSmimeEnabled.isChecked()){
+                    mSmime.setSummary("aktiv");
+                } else {
+                    mSmime.setSummary("inaktiv");
+                }
+*/
+
     }
 
     private void removeListEntry(ListPreference listPreference, String remove) {
@@ -758,6 +776,7 @@ public class AccountSettings extends K9PreferenceActivity {
         mAccount.setReplyAfterQuote(mReplyAfterQuote.isChecked());
         mAccount.setStripSignature(mStripSignature.isChecked());
         mAccount.setLocalStorageProviderId(mLocalStorageProvider.getValue());
+        mAccount.setSmimeEnabled(mSmimeEnabled.isChecked());
         if (mHasCrypto) {
             mAccount.setCryptoApp(mCryptoApp.getValue());
         }
