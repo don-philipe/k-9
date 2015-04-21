@@ -5,7 +5,6 @@ import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.net.URLConnection;
-import java.util.LinkedList;
 
 import android.app.Activity;
 import android.app.Fragment;

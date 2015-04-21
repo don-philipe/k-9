@@ -27,19 +27,17 @@ import com.fsck.k9.fragment.MessageViewFragment;
 import com.fsck.k9.helper.IdentityHelper;
 import com.fsck.k9.mail.Message;
 import com.fsck.k9.mail.MessagingException;
-import com.fsck.k9.mail.Multipart;
-import com.fsck.k9.mail.Part;
-import com.fsck.k9.mail.internet.MessageExtractor;
-import com.fsck.k9.mail.internet.MimeUtility;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.Charset;
-import java.util.LinkedList;
+import java.util.Properties;
+
+import javax.mail.Session;
+import javax.mail.internet.MimeMessage;
 
 import de.tud.smime.mail.MailReader;
 import de.tud.smime.util.SmimeError;
@@ -227,68 +225,28 @@ public class MessageSmimeView extends LinearLayout {
                 R.color.crypto_orange));
         mText.setText(R.string.smime_decrypting_verifying);
 
-        Part part = null;
+        MimeMessage mm = null;
+        Properties prop = System.getProperties();
+        Session sess = Session.getDefaultInstance(prop, null);
         try {
-            part = MimeUtility.findFirstPartByMimeType(message, "text/plain");
-
-            if (part == null) {
-                part = MimeUtility.findFirstPartByMimeType(message, "text/html");
-            }
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            message.writeTo(out);
+            //String messag = out.toString();
+            //System.out.println(messag);
+            byte[] ba = out.toByteArray();
+            ByteArrayInputStream in = new ByteArrayInputStream(ba);
+            mm = new MimeMessage(sess, in);
+            out.close();
+            in.close();
+        } catch (IOException ex) {
+         ex.printStackTrace();
         } catch (MessagingException e) {
             e.printStackTrace();
-        }
-        if (part != null) {
-            mData = MessageExtractor.getTextFromPart(part);
-        }
-
-        try {
-            OutputStream os = new ByteArrayOutputStream();
-            try {
-                message.getBody().writeTo(os);
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            message.getMessageId();
-            MailReader.readMail(message.getBody().getInputStream());
-        } catch (MessagingException e) {
+        } catch (javax.mail.MessagingException e) {
             e.printStackTrace();
         }
 
-//        // waiting in a new thread
-//        Runnable r = new Runnable() {
-//
-//            @Override
-//            public void run() {
-//                try {
-//                    // get data String
-//                    Part part = MimeUtility.findFirstPartByMimeType(message, "text/plain");
-//                    if (part == null) {
-//                        part = MimeUtility.findFirstPartByMimeType(message, "text/html");
-//                    }
-//                    if (part != null) {
-//                        mData = MessageExtractor.getTextFromPart(part);
-//                    }
-//
-//                    // wait for service to be bound
-////                    while (!mOpenPgpServiceConnection.isBound()) {
-////                        try {
-////                            Thread.sleep(100);
-////                        } catch (InterruptedException e) {
-////                        }
-////                    }
-//
-////                    mSmimeApi = new SmimeApi(getContext(), mSmimeServiceConnection.getService());
-//
-//                    decryptVerify(new Intent());
-//
-//                } catch (MessagingException me) {
-//                    Log.e(K9.LOG_TAG, "Unable to decrypt email.", me);
-//                }
-//
-//            }
-//        };
-//
-//        new Thread(r).start();
+        MailReader.readMail(mm);
     }
 
     private void decryptVerify(Intent intent) {

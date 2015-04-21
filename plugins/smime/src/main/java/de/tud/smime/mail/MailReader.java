@@ -3,44 +3,25 @@ package de.tud.smime.mail;
 import org.bouncycastle.cert.X509CertificateHolder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.cms.CMSException;
-import org.bouncycastle.cms.RecipientId;
-import org.bouncycastle.cms.RecipientInformation;
-import org.bouncycastle.cms.RecipientInformationStore;
 import org.bouncycastle.cms.SignerInformation;
 import org.bouncycastle.cms.SignerInformationStore;
 import org.bouncycastle.cms.jcajce.JcaSimpleSignerInfoVerifierBuilder;
-import org.bouncycastle.cms.jcajce.JceKeyTransEnvelopedRecipient;
-import org.bouncycastle.cms.jcajce.JceKeyTransRecipientId;
 import org.bouncycastle.jce.provider.BouncyCastleProvider;
-import org.bouncycastle.mail.smime.SMIMEEnveloped;
+import org.bouncycastle.mail.smime.SMIMEException;
 import org.bouncycastle.mail.smime.SMIMESigned;
-import org.bouncycastle.mail.smime.SMIMEUtil;
 import org.bouncycastle.operator.OperatorCreationException;
 import org.bouncycastle.util.Store;
 
-import java.io.BufferedOutputStream;
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.nio.charset.Charset;
-import java.security.KeyStore;
-import java.security.PrivateKey;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 import java.util.Collection;
-import java.util.Enumeration;
 import java.util.Iterator;
-import java.util.LinkedList;
-import java.util.Properties;
 
 import javax.mail.BodyPart;
 import javax.mail.Message;
 import javax.mail.MessagingException;
 import javax.mail.Multipart;
-import javax.mail.Session;
 import javax.mail.internet.MimeBodyPart;
 import javax.mail.internet.MimeMessage;
 import javax.mail.internet.MimeMultipart;
@@ -54,46 +35,32 @@ public class MailReader {
     /**
      *
      */
-    public static boolean readMail(InputStream message) {
-        Properties props = System.getProperties();
-        Session session = Session.getDefaultInstance(props, null);
+    public static boolean readMail(MimeMessage message) {
         try {
-            MimeMessage mm = new MimeMessage(session, message);
-            if(mm.isMimeType("application/pkcs7-signature") || mm.isMimeType("multipart/signed"))
-                return readSignedMail(mm);
-//            if(message.hasAttachments()) {
-//                LinkedList<String> mimtypes = new LinkedList<String>();
-//                if (message.hasAttachments()) {
-//                    for (int i = 0; i < message.getCount(); i++) {
-//                        try {
-//                            mimtypes.add(message.getBodyPart(i).getMimeType());
-//                        } catch (MessagingException e) {
-//                            e.printStackTrace();
-//                        }
-//                    }
-//                }
-//                if(mimtypes.contains("application/pkcs7-signature") || mimtypes.contains("multipart/signed")) {
-//                    InputStream is = new ByteArrayInputStream(mData.getBytes(Charset.forName("UTF-8")));
-//
-//                }
-//            }
-        } catch (MessagingException e) {
+            MimeMessage msg = new MimeMessage(message);
+            boolean sig_correct = false;
+            Object cont = msg.getContent();
+            if (cont instanceof String) {
+                System.out.println((String)cont);
+            }
+            else if (cont instanceof Multipart) {
+                Multipart mp = (Multipart) cont;
+                int count = mp.getCount();
+                for (int i = 0; i < count; i++) {
+                    BodyPart m = mp.getBodyPart(i);
+                    String conttype = m.getContentType();
+                    Object part = m.getContent();
+                }
+            }
+            if(msg.isMimeType("multipart/signed") || msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime"))
+                sig_correct = readSignedMail(msg);
+            if(msg.isMimeType("application/pkcs7-mime") && sig_correct)
+                //TODO get the right keystore uri
+                readEncryptedMail(msg, "keystore_uri");
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
-//        try {
-//            Properties props = System.getProperties();
-//            Session session = Session.getDefaultInstance(props, null);
-//            MimeMessage msg = new MimeMessage(session, fis);
-//            boolean sig_correct = false;
-//            if(msg.isMimeType("multipart/signed") || msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime"))
-//                return readSignedMail(msg);
-//            if(msg.isMimeType("application/pkcs7-mime") && sig_correct)
-//                //TODO get the right keystore uri
-//                readEncryptedMail(msg, "keystore_uri");
-//        }
-//        catch (Exception e) {
-//            //TODO
-//        }
         return false;
     }
 
@@ -102,9 +69,9 @@ public class MailReader {
      * @param msg the message to decrypt
      * @param pkcs12Keystore URI to the keystore
      */
-    private static void readEncryptedMail(MimeMessage msg, String pkcs12Keystore) {
+    private static void readEncryptedMail(Message msg, String pkcs12Keystore) {
         try {
-            // Open the key store
+            /*// Open the key store
             KeyStore ks = KeyStore.getInstance("PKCS12", "BC");
             //TODO of course a fixed password is not the final solution
             ks.load(new FileInputStream(pkcs12Keystore), "passwd".toCharArray());
@@ -132,7 +99,7 @@ public class MailReader {
             //TODO
             System.out.println("Message Contents");
             System.out.println("----------------");
-            System.out.println(res.getContent());
+            System.out.println(res.getContent());*/
         }
         catch (Exception e) {
             // TODO
@@ -147,39 +114,44 @@ public class MailReader {
      */
     private static boolean readSignedMail(MimeMessage msg) {
         boolean correct_sig = false;
+
         try {
-            if (msg.isMimeType("multipart/signed")) {
-                SMIMESigned s = new SMIMESigned((MimeMultipart) msg.getContent());
+            if (msg.isMimeType("multipart/signed") || msg.isMimeType("multipart/mixed")) {
+                SMIMESigned s = new SMIMESigned((MimeMultipart)msg.getContent());
 
                 // extract the content
                 MimeBodyPart content = s.getContent();
-                System.out.println("Content:");
+                //System.out.println("Content:");
                 Object cont = content.getContent();
 
-                if (cont instanceof String)
-                    System.out.println((String) cont);
+                if (cont instanceof String) {
+                    System.out.println((String)cont);
+                }
                 else if (cont instanceof Multipart) {
-                    Multipart mp = (Multipart) cont;
+                    Multipart mp = (Multipart)cont;
                     int count = mp.getCount();
                     for (int i = 0; i < count; i++) {
                         BodyPart m = mp.getBodyPart(i);
                         Object part = m.getContent();
 
-                        //TODO
                         System.out.println("Part " + i);
                         System.out.println("---------------------------");
 
-                        if (part instanceof String)
-                            System.out.println((String) part);
-                        else
+                        if (part instanceof String) {
+                            String st = (String) part;
+                            System.out.println((String)part);
+                        }
+                        else {
                             System.out.println("can't print...");
+                        }
                     }
                 }
 
                 System.out.println("Status:");
-                correct_sig = verifySignedMailWithCert(s);
+
+                //TODO
+                // verify(s);
             }
-            // signed encrypted mails:
             else if (msg.isMimeType("application/pkcs7-mime") || msg.isMimeType("application/x-pkcs7-mime")) {
                 // in this case the content is wrapped in the signature block.
                 SMIMESigned s = new SMIMESigned(msg);
@@ -189,22 +161,27 @@ public class MailReader {
                 System.out.println("Content:");
                 Object cont = content.getContent();
 
-                if (cont instanceof String)
-                    System.out.println((String) cont);
+                if (cont instanceof String) {
+                    System.out.println((String)cont);
+                }
 
                 System.out.println("Status:");
-
-                correct_sig = verifySignedMailWithCert(s);
+                //TODO
+                // verify(s);
             }
-            else
-                return false;
+            else {
+                System.err.println("Not a signed message!");
+            }
+        } catch (MessagingException e) {
+            e.printStackTrace();
+        } catch (CMSException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (SMIMEException e) {
+            e.printStackTrace();
         }
-        catch(Exception e) {
-            //TODO
-        }
-        finally {
-            return correct_sig;
-        }
+        return correct_sig;
     }
 
     /**
