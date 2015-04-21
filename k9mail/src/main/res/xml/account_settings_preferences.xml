@@ -483,7 +483,7 @@
 
                <CheckBoxPreference
                     android:persistent="false"
-                    android:key="smime_checkbox"
+                    android:key="smime_enabled"
                     android:dependency="account_notify"
                     android:title="@string/account_settings_smime_checkbox_title"
                     android:summary="@string/account_settings_smime_checkbox_text"

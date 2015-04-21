@@ -212,6 +212,7 @@ public class Account implements BaseAccount, StoreConfig {
     private boolean mAlwaysShowCcBcc;
     private boolean mAllowRemoteSearch;
     private boolean mRemoteSearchFullText;
+    private boolean mSmimeEnabled;
     private int mRemoteSearchNumResults;
 
     private ColorChip mUnreadColorChip;
@@ -308,6 +309,7 @@ public class Account implements BaseAccount, StoreConfig {
         mEnabled = true;
         mMarkMessageAsReadOnView = true;
         mAlwaysShowCcBcc = false;
+        mSmimeEnabled = false;
 
         searchableFolders = Searchable.ALL;
 
@@ -489,6 +491,7 @@ public class Account implements BaseAccount, StoreConfig {
         identities = loadIdentities(prefs);
 
         mCryptoApp = prefs.getString(mUuid + ".cryptoApp", NO_OPENPGP_PROVIDER);
+        mSmimeEnabled = prefs.getBoolean(mUuid + ".smimeEnabled", false);
         mAllowRemoteSearch = prefs.getBoolean(mUuid + ".allowRemoteSearch", false);
         mRemoteSearchFullText = prefs.getBoolean(mUuid + ".remoteSearchFullText", false);
         mRemoteSearchNumResults = prefs.getInt(mUuid + ".remoteSearchNumResults", DEFAULT_REMOTE_SEARCH_NUM_RESULTS);
@@ -750,6 +753,7 @@ public class Account implements BaseAccount, StoreConfig {
         editor.putBoolean(mUuid + ".replyAfterQuote", mReplyAfterQuote);
         editor.putBoolean(mUuid + ".stripSignature", mStripSignature);
         editor.putString(mUuid + ".cryptoApp", mCryptoApp);
+        editor.putBoolean(mUuid + ".smimeEnabled", mSmimeEnabled);
         editor.putBoolean(mUuid + ".allowRemoteSearch", mAllowRemoteSearch);
         editor.putBoolean(mUuid + ".remoteSearchFullText", mRemoteSearchFullText);
         editor.putInt(mUuid + ".remoteSearchNumResults", mRemoteSearchNumResults);
@@ -1639,6 +1643,15 @@ public class Account implements BaseAccount, StoreConfig {
     public void setCryptoApp(String cryptoApp) {
         mCryptoApp = cryptoApp;
     }
+
+    public Boolean isSmimeEnabled() {
+        return mSmimeEnabled;
+    }
+
+    public void setSmimeEnabled(Boolean smimeEnabled) {
+        mSmimeEnabled = smimeEnabled;
+    }
+
 
     public boolean allowRemoteSearch() {
         return mAllowRemoteSearch;
