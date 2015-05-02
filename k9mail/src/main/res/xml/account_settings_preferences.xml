@@ -466,30 +466,29 @@
         android:title="@string/account_settings_crypto"
         android:key="krypto">
 
-        <PreferenceScreen
-            android:title="@string/account_settings_openpgp"
-            android:key="crypto">
+        <org.openintents.openpgp.util.OpenPgpAppPreference
+            android:persistent="false"
+            android:key="crypto_app"
+            android:title="@string/account_settings_crypto_app" />
 
-            <org.openintents.openpgp.util.OpenPgpListPreference
-                android:persistent="false"
-                android:key="crypto_app"
-                android:title="@string/account_settings_crypto_app" />
+        <!--<PreferenceScreen-->
+            <!--android:title="@string/account_settings_smime"-->
+            <!--android:key="smime">-->
 
-        </PreferenceScreen>
+               <!--<CheckBoxPreference-->
+                    <!--android:persistent="false"-->
+                    <!--android:key="smime_enabled"-->
+                    <!--android:dependency="account_notify"-->
+                    <!--android:title="@string/account_settings_smime_checkbox_title"-->
+                    <!--android:summary="@string/account_settings_smime_checkbox_text"-->
+                    <!--android:defaultValue="false" />-->
 
-        <PreferenceScreen
-            android:title="@string/account_settings_smime"
-            android:key="smime">
+        <!--</PreferenceScreen>-->
 
-               <CheckBoxPreference
-                    android:persistent="false"
-                    android:key="smime_enabled"
-                    android:dependency="account_notify"
-                    android:title="@string/account_settings_smime_checkbox_title"
-                    android:summary="@string/account_settings_smime_checkbox_text"
-                    android:defaultValue="false" />
-
-        </PreferenceScreen>
+        <org.openintents.openpgp.util.OpenPgpKeyPreference
+            android:persistent="false"
+            android:key="crypto_key"
+            android:title="@string/account_settings_crypto_key" />
 
     </PreferenceScreen>
 
