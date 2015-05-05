@@ -42,11 +42,7 @@ public class CryptoHelper {
             if (message.hasAttachments()) {
                 Multipart mp = (Multipart) message.getBody();
                 for (int i = 0; i < mp.getCount(); i++) {
-                    try {
-                        mimtypes.add(mp.getBodyPart(i).getMimeType());
-                    } catch (MessagingException e) {
-                        e.printStackTrace();
-                    }
+                    mimtypes.add(mp.getBodyPart(i).getMimeType());
                 }
             }
             if(mimtypes.contains("application/pkcs7-signature"))
@@ -82,11 +78,7 @@ public class CryptoHelper {
             if (message.hasAttachments()) {
                 Multipart mp = (Multipart) message.getBody();
                 for (int i = 0; i < mp.getCount(); i++) {
-                    try {
-                        mimtypes.add(mp.getBodyPart(i).getMimeType());
-                    } catch (MessagingException e) {
-                        e.printStackTrace();
-                    }
+                    mimtypes.add(mp.getBodyPart(i).getMimeType());
                 }
             }
             if(mimtypes.contains("application/pkcs7-signature") || mimtypes.contains("multipart/signed"))
