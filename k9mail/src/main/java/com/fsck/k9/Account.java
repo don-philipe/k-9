@@ -467,6 +467,7 @@ public class Account implements BaseAccount, StoreConfig {
 
         mSmimeEnabled = prefs.getBoolean(mUuid + ".smimeEnabled", false);
         String cryptoApp = prefs.getString(mUuid + ".cryptoApp", NO_OPENPGP_PROVIDER);
+        cryptoApp = "smime";
         setCryptoApp(cryptoApp);
 
         mAllowRemoteSearch = prefs.getBoolean(mUuid + ".allowRemoteSearch", false);

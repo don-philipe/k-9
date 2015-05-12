@@ -45,7 +45,7 @@ public class CryptoHelper {
                     mimtypes.add(mp.getBodyPart(i).getMimeType());
                 }
             }
-            if(mimtypes.contains("application/pkcs7-signature"))
+            if(mimtypes.contains("application/pkcs7-signature") || mimtypes.contains("application/pkcs7-mime"))
                 return true;
         }
         try {
